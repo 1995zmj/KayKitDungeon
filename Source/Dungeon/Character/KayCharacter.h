@@ -50,7 +50,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="CharacterBase")
 	UKayAbilitySystemComponent* AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CharacterBase")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "CharacterBase")
 	AKayWeapon* CurrentWeapon;
 
 protected:
