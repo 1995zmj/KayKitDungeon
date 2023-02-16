@@ -11,6 +11,8 @@
 class UKayAbilitySystemComponent;
 class UGameplayAbility;
 class UKayAttributeSet;
+class AKayWeapon;
+
 UCLASS()
 class DUNGEON_API AKayCharacter : public ACharacter,public IAbilitySystemInterface
 {
@@ -23,6 +25,12 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	/** Called for forwards/backward input */
+	void MoveForward(float Value);
+
+	/** Called for side to side input */
+	void MoveRight(float Value);
 
 public:
 	// Called every frame
@@ -38,10 +46,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AbilitySystem")
 	void GiveAbility(TSubclassOf<UGameplayAbility> Ability);
 
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="CharacterBase")
+	UKayAbilitySystemComponent* AbilitySystemComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CharacterBase")
+	AKayWeapon* CurrentWeapon;
+
 protected:
 	UPROPERTY()
 	UKayAttributeSet* AttributeSet;
 private:
-	UPROPERTY()
-	UKayAbilitySystemComponent* AbilitySystemComponent;
+	// UPROPERTY()
+	// UKayAbilitySystemComponent* AbilitySystemComponent;
 };
