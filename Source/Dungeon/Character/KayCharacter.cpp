@@ -16,13 +16,35 @@ AKayCharacter::AKayCharacter()
 	AbilitySystemComponent = CreateDefaultSubobject<UKayAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 
 	AttributeSet = CreateDefaultSubobject<UKayAttributeSet>(TEXT("AttributeSet"));
+	
+	CharacterLevel = 1;
+	bAbilitiesInitialized = false;
+}
+
+void AKayCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	UE_LOG(LogTemp,Warning,TEXT("zmj InitAbilityActorInfo"));
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this,this);
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UKayAttributeSet::GetHealthAttribute()).AddUObject(this, &AKayCharacter::HandleHealthChanged);
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UKayAttributeSet::GetManaAttribute()).AddUObject(this, &AKayCharacter::HandleManaChanged);
+		AddStartupGameplayAbilities();
+	}
+}
+
+void AKayCharacter::UnPossessed()
+{
+	Super::UnPossessed();
 }
 
 // Called when the game starts or when spawned
 void AKayCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -86,6 +108,129 @@ void AKayCharacter::GiveAbility(TSubclassOf<UGameplayAbility> Ability)
 			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability, 1));
 		}
 		AbilitySystemComponent->InitAbilityActorInfo(this,this);
+	}
+}
+
+const AKayWeapon* AKayCharacter::GetCurrentWeapon()
+{
+	return CurrentWeapon;
+}
+
+int32 AKayCharacter::GetCharacterLevel() const
+{
+	return CharacterLevel;
+}
+
+float AKayCharacter::GetHealth()
+{
+	return AttributeSet->GetHealth();
+}
+
+float AKayCharacter::GetMaxHealth()
+{
+	return AttributeSet->GetMaxHealth();
+}
+
+float AKayCharacter::GetMana()
+{
+	return AttributeSet->GetMana();
+}
+
+float AKayCharacter::GetMaxMana()
+{
+	return AttributeSet->GetMaxMana();
+}
+
+float AKayCharacter::GetAttributeData(const FGameplayAttribute& Attribute)
+{
+	return Attribute.GetGameplayAttributeData(AttributeSet)->GetCurrentValue();
+}
+
+void AKayCharacter::AddStartupGameplayAbilities()
+{
+
+	check(AbilitySystemComponent);
+
+	if (!bAbilitiesInitialized)
+	{
+
+		for (TSubclassOf<UKayGameplayAbility>& StartupAbility : GameplayAbilities)
+		{
+			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(StartupAbility, GetCharacterLevel(), INDEX_NONE, this));
+		}
+		
+		for (TSubclassOf<UGameplayEffect>& GameplayEffect : PassiveGameplayEffects)
+		{
+			auto EffectContext = AbilitySystemComponent->MakeEffectContext();
+			EffectContext.AddSourceObject(this);
+
+			FGameplayEffectSpecHandle NewHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, GetCharacterLevel(), EffectContext);
+			if (NewHandle.IsValid())
+			{
+				FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToTarget(*NewHandle.Data.Get(), AbilitySystemComponent);
+			}
+		}
+		bAbilitiesInitialized = true;
+	}
+}
+
+void AKayCharacter::RemoveStartupGameplayAbilities()
+{
+	if (bAbilitiesInitialized)
+	{
+		TArray<FGameplayAbilitySpecHandle> AbilitiesToRemove;
+		for (const FGameplayAbilitySpec& Spec : AbilitySystemComponent->GetActivatableAbilities())
+		{
+			if ((Spec.SourceObject == this) && GameplayAbilities.Contains(Spec.Ability->GetClass()))
+			{
+				AbilitiesToRemove.Add(Spec.Handle);
+			}
+		}
+
+		for (int32 i = 0; i < AbilitiesToRemove.Num(); ++i)
+		{
+			AbilitySystemComponent->ClearAbility(AbilitiesToRemove[i]);
+		}
+
+		FGameplayEffectQuery Query;
+		Query.EffectSource = this;
+		AbilitySystemComponent->RemoveActiveEffects(Query);
+
+		bAbilitiesInitialized = false;
+	}
+}
+
+void AKayCharacter::HandleHealthChanged(float DeltaValue, const FGameplayTagContainer& EventTags)
+{
+	if (bAbilitiesInitialized)
+	{
+		OnHealthChanged(DeltaValue, EventTags);
+	}
+}
+
+void AKayCharacter::HandleHealthChanged(const FOnAttributeChangeData& AttributeChangeData)
+{
+	if (bAbilitiesInitialized)
+	{
+		FGameplayTagContainer EventTags;
+		OnHealthChanged(AttributeChangeData.NewValue, EventTags);
+	}
+}
+
+void AKayCharacter::HandleManaChanged(float DeltaValue, const FGameplayTagContainer& EventTags)
+{
+	if (bAbilitiesInitialized)
+	{
+		OnManaChanged(DeltaValue, EventTags);
+	}
+}
+
+void AKayCharacter::HandleManaChanged(const FOnAttributeChangeData& AttributeChangeData)
+{
+	if (bAbilitiesInitialized)
+	{
+		FGameplayTagContainer EventTags;
+		OnManaChanged(AttributeChangeData.NewValue, EventTags);
 	}
 }
 

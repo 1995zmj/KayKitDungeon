@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Styling/SlateBrush.h"
+#include "Dungeon/Manager/KayAssetManager.h"
 #include "KayDataAsset.generated.h"
 
 class UKayGameplayAbility;
@@ -15,6 +17,15 @@ class DUNGEON_API UKayDataAsset : public UPrimaryDataAsset
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Item)
 	FPrimaryAssetType ItemType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
+	FText ItemName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
+	FText ItemDescription;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
+	FSlateBrush ItemIcon;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities)
 	int32 AbilityLevel;
@@ -22,5 +33,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities)
 	TSubclassOf<UKayGameplayAbility> GrantedAbility;
 
-	virtual FPrimaryAssetId GetPrimaryAssetId() const override;
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	{
+		return FPrimaryAssetId(ItemType, GetFName());
+	};
+
 };

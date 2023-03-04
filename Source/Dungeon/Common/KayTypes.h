@@ -2,9 +2,10 @@
 
 #pragma once
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
 #include "KayTypes.generated.h"
 
+class UKayDataAsset;
+class UKaySaveGame;
 
 USTRUCT(BlueprintType)
 struct DUNGEON_API FKayItemSlot
@@ -55,3 +56,54 @@ struct DUNGEON_API FKayItemSlot
 		return ItemType.IsValid() && SlotNumber >= 0;
 	}
 };
+
+USTRUCT(BlueprintType)
+struct FKayItemData
+{
+	GENERATED_BODY()
+
+	FKayItemData()
+		:ItemCount(1)
+		,ItemLevel(1)
+	{}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
+	int32 ItemCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
+	int32 ItemLevel;
+
+	bool IsValid() const
+	{
+		return ItemCount > 0;
+	}
+
+	void UpdateItemData(const FKayItemData& Other, int32 MaxCount, int32 MaxLevel)
+	{
+		if (MaxCount <= 0)
+		{
+			MaxCount = MAX_int32;
+		}
+
+		if (ItemLevel <= 0)
+		{
+			ItemLevel = MAX_int32;
+		}
+
+		ItemCount = FMath::Clamp(ItemCount + Other.ItemCount, 1 , MaxCount);
+		ItemLevel = FMath::Clamp(Other.ItemLevel, 1, MaxLevel);
+	}
+};
+
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnIventoryItemChanged, bool, bAdded, UKayDataAsset*, Item);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInventroyItemChangedNative, bool, UKayDataAsset*);
+
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSlottedItemChanged, FKayItemSlot, ItemSlotm, UKayDataAsset*, Item);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlottedItemChangedNative, FKayItemSlot, UKayDataAsset*);
+
+
+DECLARE_DYNAMIC_DELEGATE(FOnInventoryLoaded);
+DECLARE_MULTICAST_DELEGATE(FOnInventoryLoadedNative);
+
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnSvaeGameLoaded, UKaySaveGame*, SaveGame);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSvaeGameLoadedNative, UKaySaveGame);

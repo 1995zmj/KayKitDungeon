@@ -16,7 +16,9 @@ public class Dungeon : ModuleRules
 			"HeadMountedDisplay",
 			"GameplayAbilities",
 			"GameplayTags",
-			"GameplayTasks"
-		});
+			"GameplayTasks",
+            "Slate",
+            "SlateCore",
+        });
 	}
 }

@@ -14,4 +14,10 @@ class DUNGEON_API UKayAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 	
+public:
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool bShouldMove;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	float Speed;
 };
