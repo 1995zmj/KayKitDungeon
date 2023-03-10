@@ -2,7 +2,9 @@
 
 
 #include "KayAttributeSet.h"
-
+#include "GameplayEffectExtension.h"
+#include "Android/AndroidSystemIncludes.h"
+#include "Dungeon/Character/KayCharacter.h"
 #include "Net/UnrealNetwork.h"
 
 UKayAttributeSet::UKayAttributeSet()
@@ -21,19 +23,125 @@ void UKayAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, f
 {
 	Super::PreAttributeChange(Attribute, NewValue);
 
-	// if (Attribute == GetMaxHealthAttribute())
-	// {
-	// 	AdjustAttributeForMaxChange(Health,MaxHealth,NewValue,GetHealthAttribute());
-	// }
-	// else if (Attribute == GetMaxManaAttribute())
-	// {
-	// 	AdjustAttributeForMaxChange(Mana,MaxMana,NewValue,GetManaAttribute());
-	// }
+	if (Attribute == GetMaxHealthAttribute())
+	{
+		AdjustAttributeForMaxChange(Health,MaxHealth,NewValue,GetHealthAttribute());
+	}
+	else if (Attribute == GetMaxManaAttribute())
+	{
+		AdjustAttributeForMaxChange(Mana,MaxMana,NewValue,GetManaAttribute());
+	}
 }
 
 void UKayAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
+
+	FGameplayEffectContextHandle Context = Data.EffectSpec.GetContext();
+	UAbilitySystemComponent* Source = Context.GetOriginalInstigatorAbilitySystemComponent();
+
+	const FGameplayTagContainer& SourceTags = *Data.EffectSpec.CapturedSourceTags.GetAggregatedTags();
+
+	float DeltaValue = 0;
+	if (Data.EvaluatedData.ModifierOp == EGameplayModOp::Type:: Additive)
+	{
+		DeltaValue = Data.EvaluatedData.Magnitude;
+	}
+
+	AActor* TargetActor = nullptr;
+	AController* TargetController = nullptr;
+	AKayCharacter* TargetCharacter = nullptr;
+	if (Data.Target.AbilityActorInfo.IsValid() && Data.Target.AbilityActorInfo->AvatarActor.IsValid())
+	{
+		TargetActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
+		TargetController = Data.Target.AbilityActorInfo->PlayerController.Get();
+		TargetCharacter = Cast<AKayCharacter>(TargetActor);
+	}
+
+	if (Data.EvaluatedData.Attribute == GetDamageAttribute())
+	{
+		AActor* SourceActor = nullptr;
+		AController* SourceController = nullptr;
+		AKayCharacter* SourceCharacter = nullptr;
+
+		if (Source && Source->AbilityActorInfo.IsValid() && Source->AbilityActorInfo->AvatarActor.IsValid())
+		{
+			SourceActor = Source->AbilityActorInfo->AvatarActor.Get();
+			SourceController = Source->AbilityActorInfo->PlayerController.Get();
+			if (SourceController == nullptr && SourceActor != nullptr)
+			{
+				if (APawn* Pawn = Cast<APawn>(SourceActor))
+				{
+					SourceController = Pawn->GetController();
+				}
+			}
+
+			if (SourceController)
+			{
+				SourceCharacter = Cast<AKayCharacter>(SourceController->GetPawn());
+			}
+			else
+			{
+				SourceCharacter = Cast<AKayCharacter>(SourceActor);
+			}
+			if (Context.GetEffectCauser())
+			{
+				SourceActor = Context.GetEffectCauser();
+			}
+		}
+
+		FHitResult HitResult;
+		if (Context.GetHitResult())
+		{
+			HitResult = *Context.GetHitResult();
+		}
+
+		const float LocalDamageDone = GetDamage();
+		SetDamage(0.f);
+
+		if (LocalDamageDone > 0.f)
+		{
+			const float OldHealth = GetHealth();
+			SetHealth(FMath::Clamp(OldHealth - LocalDamageDone, 0.0f, GetMaxHealth()));
+
+			if (TargetCharacter)
+			{
+				TargetCharacter->HandleDamage(LocalDamageDone, HitResult, SourceTags, SourceCharacter, SourceActor);
+
+				// 这里可以不用调用了 已经监听的生命的属性变化回调
+				//TargetCharacter->HandleHealthChanged(-LocalDamageDone, SourceTags);
+			}
+		}
+	}
+	else if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		// SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
+		//
+		// if (TargetCharacter)
+		// {
+		// 	// 这里来触发 生命变化 应该是怕 属性频繁的变化（容错处理的）
+		// 	// TargetCharacter->HandleHealthChanged(DeltaValue, SourceTags);
+		// }
+	}
+	else if (Data.EvaluatedData.Attribute == GetManaAttribute())
+	{
+		// Clamp mana
+		// SetMana(FMath::Clamp(GetMana(), 0.0f, GetMaxMana()));
+		//
+		// if (TargetCharacter)
+		// {
+		// 	// Call for all mana changes
+		// 	TargetCharacter->HandleManaChanged(DeltaValue, SourceTags);
+		// }
+	}
+	else if (Data.EvaluatedData.Attribute == GetMoveSpeedAttribute())
+	{
+		// if (TargetCharacter)
+		// {
+		// 	// Call for all movespeed changes
+		// 	TargetCharacter->HandleMoveSpeedChanged(DeltaValue, SourceTags);
+		// }
+	}
 }
 
 void UKayAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

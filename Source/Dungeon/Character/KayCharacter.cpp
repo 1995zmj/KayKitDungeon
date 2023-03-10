@@ -121,24 +121,122 @@ int32 AKayCharacter::GetCharacterLevel() const
 	return CharacterLevel;
 }
 
-float AKayCharacter::GetHealth()
+float AKayCharacter::GetHealth() const
 {
 	return AttributeSet->GetHealth();
 }
 
-float AKayCharacter::GetMaxHealth()
+float AKayCharacter::GetMaxHealth() const
 {
 	return AttributeSet->GetMaxHealth();
 }
 
-float AKayCharacter::GetMana()
+float AKayCharacter::GetMana() const
 {
 	return AttributeSet->GetMana();
 }
 
-float AKayCharacter::GetMaxMana()
+float AKayCharacter::GetMaxMana() const
 {
 	return AttributeSet->GetMaxMana();
+}
+
+float AKayCharacter::GetMoveSpeed() const
+{
+	return AttributeSet->GetMoveSpeed();
+}
+
+bool AKayCharacter::SetCharacterLevel(int32 NewLevel)
+{
+	if (CharacterLevel != NewLevel && NewLevel > 0)
+	{
+		RemoveStartupGameplayAbilities();
+		CharacterLevel = NewLevel;
+		AddStartupGameplayAbilities();
+		return true;
+	}
+	return false;
+}
+
+bool AKayCharacter::ActivateAbilitiesWithItemSlot(FKayItemSlot ItemSlot, bool bAllowRemoteActivation)
+{
+	FGameplayAbilitySpecHandle* FoundHandle = SlottedAbilities.Find(ItemSlot);
+
+	if (FoundHandle && AbilitySystemComponent)
+	{
+		return AbilitySystemComponent->TryActivateAbility(*FoundHandle, bAllowRemoteActivation);
+	}
+
+	return false;
+}
+
+void AKayCharacter::GetActiveAbilitiesWithItemSlot(FKayItemSlot ItemSlot, TArray<UKayGameplayAbility*>& ActiveAbilities)
+{
+	FGameplayAbilitySpecHandle* FoundHandle = SlottedAbilities.Find(ItemSlot);
+
+	if (FoundHandle && AbilitySystemComponent)
+	{
+		FGameplayAbilitySpec* FoundSpec = AbilitySystemComponent->FindAbilitySpecFromHandle(*FoundHandle);
+
+		if (FoundSpec)
+		{
+			TArray<UGameplayAbility*> AbilityInstances = FoundSpec->GetAbilityInstances();
+
+			for (UGameplayAbility* ActiveAbility : AbilityInstances)
+			{
+				ActiveAbilities.Add(Cast<UKayGameplayAbility>(ActiveAbility));
+			}
+		}
+	}
+}
+
+bool AKayCharacter::ActivateAbilitiesWithTags(FGameplayTagContainer AbilityTags, bool bAllowRemoteActivation)
+{
+	if (AbilitySystemComponent)
+	{
+		return AbilitySystemComponent->TryActivateAbilitiesByTag(AbilityTags,bAllowRemoteActivation);
+	}
+	return false;
+}
+
+void AKayCharacter::GetActiveAbilitiesWithTags(FGameplayTagContainer AbilityTags,
+	TArray<UKayGameplayAbility*>& ActiveAbilities)
+{
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->GetActiveAbilitiesWithTags(AbilityTags, ActiveAbilities);
+	}
+}
+
+bool AKayCharacter::GetCooldownRemainingForTag(FGameplayTagContainer CooldownTags, float& TimeRemaining,
+	float& CooldownDuration)
+{
+	if (AbilitySystemComponent && CooldownTags.Num() > 0)
+	{
+		TimeRemaining = 0.f;
+		CooldownDuration = 0.f;
+		FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldownTags);
+		TArray<TPair<float, float>> DurationAndTimeRemaining = AbilitySystemComponent->GetActiveEffectsTimeRemainingAndDuration(Query);
+
+		if (DurationAndTimeRemaining.Num() > 0)
+		{
+			int32 BestIdx = 0;
+			float LongestTime = DurationAndTimeRemaining[0].Key;
+			for (int32 Idx = 1; Idx < DurationAndTimeRemaining.Num(); ++Idx)
+			{
+				if (DurationAndTimeRemaining[Idx].Key > LongestTime)
+				{
+					LongestTime = DurationAndTimeRemaining[Idx].Key;
+					BestIdx = Idx;
+				}
+			}
+			TimeRemaining = DurationAndTimeRemaining[BestIdx].Key;
+			CooldownDuration = DurationAndTimeRemaining[BestIdx].Value;
+
+			return true;
+		}
+	}
+	return false;
 }
 
 float AKayCharacter::GetAttributeData(const FGameplayAttribute& Attribute)
@@ -200,6 +298,12 @@ void AKayCharacter::RemoveStartupGameplayAbilities()
 	}
 }
 
+void AKayCharacter::HandleDamage(float DamageAmount, const FHitResult& HitInfo, const FGameplayTagContainer& DamageTags,
+	AKayCharacter* InstigatorCharacter, AActor* DamageCauser)
+{
+	OnDamaged(DamageAmount, HitInfo, DamageTags, InstigatorCharacter, DamageCauser);
+}
+
 void AKayCharacter::HandleHealthChanged(float DeltaValue, const FGameplayTagContainer& EventTags)
 {
 	if (bAbilitiesInitialized)
@@ -213,7 +317,7 @@ void AKayCharacter::HandleHealthChanged(const FOnAttributeChangeData& AttributeC
 	if (bAbilitiesInitialized)
 	{
 		FGameplayTagContainer EventTags;
-		OnHealthChanged(AttributeChangeData.NewValue, EventTags);
+		OnHealthChanged(AttributeChangeData.OldValue - AttributeChangeData.NewValue, EventTags);
 	}
 }
 
@@ -230,7 +334,7 @@ void AKayCharacter::HandleManaChanged(const FOnAttributeChangeData& AttributeCha
 	if (bAbilitiesInitialized)
 	{
 		FGameplayTagContainer EventTags;
-		OnManaChanged(AttributeChangeData.NewValue, EventTags);
+		OnManaChanged(AttributeChangeData.OldValue - AttributeChangeData.NewValue, EventTags);
 	}
 }
 

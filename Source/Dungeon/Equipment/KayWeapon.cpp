@@ -2,7 +2,7 @@
 
 
 #include "KayWeapon.h"
-
+#include "Dungeon/Dungeon.h"
 #include "Components/CapsuleComponent.h"
 
 FName AKayWeapon::RootComponentName(TEXT("Root"));
@@ -55,6 +55,7 @@ void AKayWeapon::BeginPlay()
 void AKayWeapon::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	DECLARE_SCOPE_CYCLE_COUNTER(TEXT("AKayWeapon::Tick"), STAT_AKayWeaponTick, STATGROUP_KayD);
 }
 
 void AKayWeapon::NotifyBeginWeaponAttack()

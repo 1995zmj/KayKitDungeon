@@ -5,7 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayAbilitySpec.h"
+
+
+#include "Dungeon/Common/KayTypes.h"
 #include "Dungeon/GAS/KayGameplayAbility.h"
+#include "Tests/AutomationTestSettings.h"
 
 #include "KayCharacter.generated.h"
 
@@ -66,14 +71,34 @@ public:
 	int32 GetCharacterLevel() const;
 
 	UFUNCTION(BlueprintCallable)
-	float GetHealth();
+	float GetHealth() const;
 	UFUNCTION(BlueprintCallable)
-	float GetMaxHealth();
+	float GetMaxHealth() const;
 	UFUNCTION(BlueprintCallable)
-	float GetMana();
+	float GetMana() const;
 	UFUNCTION(BlueprintCallable)
-	float GetMaxMana();
+	float GetMaxMana() const;
+	UFUNCTION(BlueprintCallable)
+	float GetMoveSpeed() const;
 
+	UFUNCTION(BlueprintCallable)
+	bool SetCharacterLevel(int32 NewLevel);
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	bool ActivateAbilitiesWithItemSlot(FKayItemSlot ItemSlot, bool bAllowRemoteActivation = true);
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	void GetActiveAbilitiesWithItemSlot(FKayItemSlot ItemSlot, TArray<UKayGameplayAbility*>& ActiveAbilities);
+	
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	bool ActivateAbilitiesWithTags(FGameplayTagContainer AbilityTags, bool bAllowRemoteActivation = true);
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	void GetActiveAbilitiesWithTags(FGameplayTagContainer AbilityTags, TArray<UKayGameplayAbility*>& ActiveAbilities);
+
+	UFUNCTION(BlueprintCallable, Category = "Abilities")
+	bool GetCooldownRemainingForTag(FGameplayTagContainer CooldownTags, float& TimeRemaining, float& CooldownDuration);
+	
 	UFUNCTION(BlueprintCallable)
 	float GetAttributeData(const FGameplayAttribute& Attribute);
 	
@@ -92,10 +117,23 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Abilities)
 	TArray<TSubclassOf<UKayGameplayAbility>> GameplayAbilities;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
+	TMap<FKayItemSlot, TSubclassOf<UKayGameplayAbility>> DefaultSlottedAbilities;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
+	TMap<FKayItemSlot, FGameplayAbilitySpecHandle> SlottedAbilities;
+
+	FDelegateHandle InventoryUpdateHandle;
+	FDelegateHandle InventoryLoadedHandle;
+	
 	
 	void AddStartupGameplayAbilities();
 
 	void RemoveStartupGameplayAbilities();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnDamaged(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags, AKayCharacter* InstigatorCharacter, AActor* DamageCauser);
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnHealthChanged(float DeltaBalue, const struct FGameplayTagContainer& EventTags);
@@ -103,10 +141,14 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnManaChanged(float DeltaBalue, const struct FGameplayTagContainer& EventTags);
 
+	virtual void HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags, AKayCharacter* InstigatorCharacter, AActor* DamageCauser);
 	virtual void HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 	virtual void HandleHealthChanged(const FOnAttributeChangeData& AttributeChangeData);
 	virtual void HandleManaChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 	virtual void HandleManaChanged(const FOnAttributeChangeData& AttributeChangeData);
+
+
+	friend UKayAttributeSet;
 
 private:
 	// UPROPERTY()

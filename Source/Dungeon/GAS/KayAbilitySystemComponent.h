@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
+#include "KayGameplayAbility.h"
 #include "KayAbilitySystemComponent.generated.h"
 
 
@@ -16,4 +17,8 @@ class DUNGEON_API UKayAbilitySystemComponent : public UAbilitySystemComponent
 public:
 	// Sets default values for this component's properties
 	UKayAbilitySystemComponent();
+
+	void GetActiveAbilitiesWithTags(const FGameplayTagContainer& GameplayTagContainer, TArray<UKayGameplayAbility*>& ActiveAbilities);
+
+	static UKayAbilitySystemComponent* GetAbilitySystemComponentFromActor(const AActor* Actor, bool LookForComponent = false);
 };

@@ -2,6 +2,8 @@
 
 
 #include "KayAbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
+#include "KayAbilitySystemComponent.h"
 
 
 // Sets default values for this component's properties
@@ -12,6 +14,28 @@ UKayAbilitySystemComponent::UKayAbilitySystemComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
+}
+
+void UKayAbilitySystemComponent::GetActiveAbilitiesWithTags(const FGameplayTagContainer& GameplayTagContainer,
+	TArray<UKayGameplayAbility*>& ActiveAbilities)
+{
+	TArray<FGameplayAbilitySpec*> AbilitiesToActivate;
+	GetActivatableGameplayAbilitySpecsByAllMatchingTags(GameplayTagContainer, AbilitiesToActivate, false);
+	for (FGameplayAbilitySpec* Spec : AbilitiesToActivate)
+	{
+		TArray<UGameplayAbility*> AbilityInstances = Spec->GetAbilityInstances();
+		for (UGameplayAbility* ActiveAbility : AbilityInstances)
+		{
+			ActiveAbilities.Add(Cast<UKayGameplayAbility>(ActiveAbility));
+		}
+		
+	}
+}
+
+UKayAbilitySystemComponent* UKayAbilitySystemComponent::GetAbilitySystemComponentFromActor(const AActor* Actor,
+	bool LookForComponent)
+{
+	return Cast<UKayAbilitySystemComponent>(UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor, LookForComponent));
 }
 
 
