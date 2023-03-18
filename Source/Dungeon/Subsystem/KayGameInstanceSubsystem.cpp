@@ -5,12 +5,35 @@
 #include "Dungeon/LocalData/KaySaveGame.h"
 #include "Kismet/GameplayStatics.h"
 
+UKayGameInstanceSubsystem::UKayGameInstanceSubsystem()
+{
+}
+
 void UKayGameInstanceSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	SaveSlot = TEXT("SaveGame_K");
 	SaveUserIndex = 0;
 	UE_LOG(LogTemp,Log,TEXT("UKayGameInstanceSubsystem Initialize"));
+}
+
+bool UKayGameInstanceSubsystem::IsValidItemSlot(FKayItemSlot ItemSlot) const
+{
+	if (ItemSlot.IsValid())
+	{
+		const int32* FoundCount = ItemSlotsPerType.Find(ItemSlot.ItemType);
+
+		if (FoundCount)
+		{
+			return ItemSlot.SlotNumber < * FoundCount;
+		}
+	}
+	return false;
+}
+
+UKaySaveGame* UKayGameInstanceSubsystem::GetCurrentSaveGame()
+{
+	return CurrentSaveGame;
 }
 
 void UKayGameInstanceSubsystem::SetSavingEnabled(bool bEnabled)

@@ -15,6 +15,14 @@ class DUNGEON_API UKayDataAsset : public UPrimaryDataAsset
 {
 	GENERATED_BODY()
 public:
+	UKayDataAsset()
+		: Price(0)
+		, MaxCount(1)
+		, MaxLevel(1)
+		, AbilityLevel(1)
+	{}
+
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Item)
 	FPrimaryAssetType ItemType;
 
@@ -26,6 +34,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
 	FSlateBrush ItemIcon;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
+	int32 Price;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
+	int32 MaxCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Item)
+	int32 MaxLevel;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities)
 	int32 AbilityLevel;

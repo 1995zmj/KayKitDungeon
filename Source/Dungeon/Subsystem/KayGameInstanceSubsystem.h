@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Dungeon/Common/KayTypes.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "KayGameInstanceSubsystem.generated.h"
 
@@ -15,25 +16,43 @@ class DUNGEON_API UKayGameInstanceSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 public:
+	UKayGameInstanceSubsystem();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
+	TMap<FPrimaryAssetId, FKayItemData> DefaultInventory;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
+	TMap<FPrimaryAssetType, int32> ItemSlotsPerType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	FString SaveSlot;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Inventory)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory")
 	int32 SaveUserIndex;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	FOnSaveGameLoaded OnSaveGameLoaded;
+
+	FOnSaveGameLoadedNative OnSaveGameLoadedNative;
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	UFUNCTION(BlueprintCallable, Category = Save)
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool IsValidItemSlot(FKayItemSlot ItemSlot) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Save")
+	UKaySaveGame* GetCurrentSaveGame();
+	
+	UFUNCTION(BlueprintCallable, Category = "Save")
 	void SetSavingEnabled(bool bEnabled);
 	
-	UFUNCTION(BlueprintCallable, Category = Save)
+	UFUNCTION(BlueprintCallable, Category = "Save")
 	bool ReadSaveGame();
 
-	UFUNCTION(BlueprintCallable, Category = Save)
+	UFUNCTION(BlueprintCallable, Category = "Save")
 	bool WriteSaveGame();
 
-	UFUNCTION(BlueprintCallable, Category = Save)
+	UFUNCTION(BlueprintCallable, Category = "Save")
     void ResetSaveGame();
 protected:
 	UPROPERTY()

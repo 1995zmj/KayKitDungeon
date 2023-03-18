@@ -66,12 +66,26 @@ struct FKayItemData
 		:ItemCount(1)
 		,ItemLevel(1)
 	{}
+	FKayItemData(int32 InItemCount, int32 InItemLevel)
+		:ItemCount(InItemCount)
+		,ItemLevel(InItemLevel)
+	{}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	int32 ItemCount;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	int32 ItemLevel;
+
+	bool operator==(const FKayItemData& Other) const
+	{
+		return ItemCount == Other.ItemCount && ItemLevel == Other.ItemLevel;
+	}
+
+	bool operator!=(const FKayItemData& Other) const
+	{
+		return !(*this == Other);
+	}
 
 	bool IsValid() const
 	{
@@ -95,15 +109,15 @@ struct FKayItemData
 	}
 };
 
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnIventoryItemChanged, bool, bAdded, UKayDataAsset*, Item);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInventroyItemChangedNative, bool, UKayDataAsset*);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInventoryItemChanged, bool, bAdded, UKayDataAsset*, Item);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInventoryItemChangedNative, bool, UKayDataAsset*);
 
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnSlottedItemChanged, FKayItemSlot, ItemSlotm, UKayDataAsset*, Item);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnSlottedItemChanged, FKayItemSlot, ItemSlotm, UKayDataAsset*, Item);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSlottedItemChangedNative, FKayItemSlot, UKayDataAsset*);
 
 
-DECLARE_DYNAMIC_DELEGATE(FOnInventoryLoaded);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryLoaded);
 DECLARE_MULTICAST_DELEGATE(FOnInventoryLoadedNative);
 
-DECLARE_DYNAMIC_DELEGATE_OneParam(FOnSvaeGameLoaded, UKaySaveGame*, SaveGame);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnSvaeGameLoadedNative, UKaySaveGame);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSaveGameLoaded, UKaySaveGame*, SaveGame);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSaveGameLoadedNative, UKaySaveGame*);

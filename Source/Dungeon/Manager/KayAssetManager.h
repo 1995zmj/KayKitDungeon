@@ -6,6 +6,7 @@
 #include "Engine/AssetManager.h"
 #include "KayAssetManager.generated.h"
 
+class UKayDataAsset;
 /**
  * 
  */
@@ -16,11 +17,16 @@ class DUNGEON_API UKayAssetManager : public UAssetManager
 
 
 public:
+
+
+	virtual void StartInitialLoading() override;
+	
 	static const FPrimaryAssetType	PotionItemType;
 	static const FPrimaryAssetType	SkillItemType;
 	static const FPrimaryAssetType	TokenItemType;
 	static const FPrimaryAssetType	WeaponItemType;
 
-	virtual void StartInitialLoading() override;
+	static UKayAssetManager& Get();
 
+	UKayDataAsset* ForceLoadItem(const FPrimaryAssetId& PrimaryAssetId, bool bLogWarning = true);
 };

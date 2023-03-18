@@ -29,12 +29,16 @@ public:
 		SaveDataVersion = EKaySaveGameVersion::LatestVersion;
 	}
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "SaveGame")
+	TMap<FPrimaryAssetId, FKayItemData> InventoryData;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = SaveGame)
 	TMap<FKayItemSlot, FPrimaryAssetId> SlottedItems;
 	
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = SaveGame)
 	FString UserId;
+
+	
 	
 protected:
 	UPROPERTY()

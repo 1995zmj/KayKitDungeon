@@ -40,11 +40,11 @@ void AKayWeapon::BeginPlay()
 	
 	if (GetOwner())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("GetOwner %s "), *GetOwner()->GetName());
+		UE_LOG(LogKay, Warning, TEXT("GetOwner %s "), *GetOwner()->GetName());
 	}
 	if (GetOuter())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("GetOuter %s "), *GetOuter()->GetName());
+		UE_LOG(LogKay, Warning, TEXT("GetOuter %s "), *GetOuter()->GetName());
 	}
 
 	// CapsuleComponent->IgnoreActorWhenMoving();

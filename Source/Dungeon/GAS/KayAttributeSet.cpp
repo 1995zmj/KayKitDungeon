@@ -3,7 +3,6 @@
 
 #include "KayAttributeSet.h"
 #include "GameplayEffectExtension.h"
-#include "Android/AndroidSystemIncludes.h"
 #include "Dungeon/Character/KayCharacter.h"
 #include "Net/UnrealNetwork.h"
 
