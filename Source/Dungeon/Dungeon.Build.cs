@@ -19,6 +19,7 @@ public class Dungeon : ModuleRules
 			"GameplayTasks",
             "Slate",
             "SlateCore",
+            "LoadingScreen",
         });
 	}
 }

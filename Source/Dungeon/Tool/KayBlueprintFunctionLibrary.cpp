@@ -3,12 +3,18 @@
 
 #include "KayBlueprintFunctionLibrary.h"
 
+#include "LoadingScreen.h"
+
 void UKayBlueprintFunctionLibrary::PlayLoadingScreen(bool bPlayUntilStopped, float PlayTime)
 {
+	ILoadingScreenModule& LoadingScreenModule = ILoadingScreenModule::Get();
+	LoadingScreenModule.StartInGameLoadingScreen(bPlayUntilStopped, PlayTime);
 }
 
 void UKayBlueprintFunctionLibrary::StopLoadingScreen()
 {
+	ILoadingScreenModule& LoadingScreenModule = ILoadingScreenModule::Get();
+	LoadingScreenModule.StopInGameLoadingScreen();
 }
 
 bool UKayBlueprintFunctionLibrary::IsInEditor()
