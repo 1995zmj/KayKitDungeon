@@ -3,6 +3,14 @@
 
 #include "KayBlueprintFunctionLibrary.h"
 
+void UKayBlueprintFunctionLibrary::PlayLoadingScreen(bool bPlayUntilStopped, float PlayTime)
+{
+}
+
+void UKayBlueprintFunctionLibrary::StopLoadingScreen()
+{
+}
+
 bool UKayBlueprintFunctionLibrary::IsInEditor()
 {
 	return GIsEditor;
