@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayAbilitySpec.h"
+#include "Dungeon/Common/KayInventoryInterface.h"
 
 
 #include "Dungeon/Common/KayTypes.h"
@@ -40,7 +41,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// Implement IAbilitySystemInterface
-	UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 
 protected:
@@ -121,6 +122,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Abilities")
 	TMap<FKayItemSlot, TSubclassOf<UKayGameplayAbility>> DefaultSlottedAbilities;
 
+	UPROPERTY()
+	TScriptInterface<IKayInventoryInterface> InventorySource;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory")
 	TMap<FKayItemSlot, FGameplayAbilitySpecHandle> SlottedAbilities;
 
@@ -141,12 +145,27 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnManaChanged(float DeltaBalue, const struct FGameplayTagContainer& EventTags);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnMoveSpeedChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
+
+	void OnItemSlotChanged(FKayItemSlot ItemSlot, UKayDataAsset* Item);
+
+	void RefreshSlottedGameplayAbilities();
+
+
+	void AddSlottedGameplayAbilities();
+
+	void FillSlottedAbilitySpecs(TMap<FKayItemSlot, FGameplayAbilitySpec>& SlottedAbilitySpecs);
+
+	void RemoveSlottedGameplayAbilities(bool bRemoveAll);
+
 	virtual void HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags, AKayCharacter* InstigatorCharacter, AActor* DamageCauser);
 	virtual void HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 	virtual void HandleHealthChanged(const FOnAttributeChangeData& AttributeChangeData);
 	virtual void HandleManaChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 	virtual void HandleManaChanged(const FOnAttributeChangeData& AttributeChangeData);
 
+	// virtual FGenericTeamId GetGenericTeamId() const override;
 
 	friend UKayAttributeSet;
 

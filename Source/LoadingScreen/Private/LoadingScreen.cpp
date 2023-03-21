@@ -31,7 +31,7 @@ public:
 
 	void Construct(const FArguments& InArgs)
 	{
-		static const FName LoadingScreenName(TEXT("/Game/UI/T_ActionRPG_TransparentLogo.T_ActionRPG_TransparentLogo"));
+		static const FName LoadingScreenName(TEXT("/Game/Dungeon/UI/T_ActionRPG_TransparentLogo.T_ActionRPG_TransparentLogo"));
 
 		LoadingScreenBrush = MakeShareable(new FKayLoadingScreenBrush(LoadingScreenName, FVector2D(1024,256)));
 
@@ -87,7 +87,7 @@ public:
 	virtual void StartupModule() override
 	{
 		// 预计加载图片
-		LoadObject<UObject>(nullptr, TEXT(""));
+		LoadObject<UObject>(nullptr, TEXT("/Game/Dungeon/UI/T_ActionRPG_TransparentLogo.T_ActionRPG_TransparentLogo"));
 
 		if (IsMoviePlayerEnabled())
 		{

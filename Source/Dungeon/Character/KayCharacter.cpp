@@ -271,7 +271,7 @@ void AKayCharacter::AddStartupGameplayAbilities()
 		bAbilitiesInitialized = true;
 	}
 }
-
+ 
 void AKayCharacter::RemoveStartupGameplayAbilities()
 {
 	if (bAbilitiesInitialized)
@@ -298,8 +298,110 @@ void AKayCharacter::RemoveStartupGameplayAbilities()
 	}
 }
 
+void AKayCharacter::OnItemSlotChanged(FKayItemSlot ItemSlot, UKayDataAsset* Item)
+{
+	RefreshSlottedGameplayAbilities();
+}
+
+void AKayCharacter::RefreshSlottedGameplayAbilities()
+{
+	if (bAbilitiesInitialized)
+	{
+		RemoveSlottedGameplayAbilities(false);
+		AddSlottedGameplayAbilities();
+;	}
+}
+
+void AKayCharacter::AddSlottedGameplayAbilities()
+{
+	TMap<FKayItemSlot, FGameplayAbilitySpec> SlottedAbilitySpecs;
+	FillSlottedAbilitySpecs(SlottedAbilitySpecs);
+
+	for (const TPair<FKayItemSlot,FGameplayAbilitySpec>& SpecPair : SlottedAbilitySpecs)
+	{
+		FGameplayAbilitySpecHandle& SpecHandle = SlottedAbilities.FindOrAdd(SpecPair.Key);
+		if (!SpecHandle.IsValid())
+		{
+			SpecHandle = AbilitySystemComponent->GiveAbility(SpecPair.Value);
+		}
+	}
+	
+}
+
+void AKayCharacter::FillSlottedAbilitySpecs(TMap<FKayItemSlot, FGameplayAbilitySpec>& SlottedAbilitySpecs)
+{
+
+	for (const TPair<FKayItemSlot, TSubclassOf<UKayGameplayAbility>> DefaultPair : DefaultSlottedAbilities)
+	{
+		if (DefaultPair.Value.Get())
+		{
+			SlottedAbilitySpecs.Add(DefaultPair.Key, FGameplayAbilitySpec(DefaultPair.Value, GetCharacterLevel()));
+		}
+	}
+
+	if (InventorySource)
+	{
+		const TMap<FKayItemSlot, UKayDataAsset*>& SlottedItemMap = InventorySource->GetSlottedItemMap();
+
+		for (const TPair<FKayItemSlot, UKayDataAsset*>& ItemPair : SlottedItemMap)
+		{
+			UKayDataAsset* SlottedItem = ItemPair.Value;
+
+			int32 AbilityLevel = GetCharacterLevel();
+
+			if (SlottedItem && SlottedItem->ItemType.GetName() == FName(TEXT("Weapon")))
+			{
+				AbilityLevel = SlottedItem->AbilityLevel;
+			}
+
+			if (SlottedItem && SlottedItem->GrantedAbility)
+			{
+				SlottedAbilitySpecs.Add(ItemPair.Key, FGameplayAbilitySpec(SlottedItem->GrantedAbility, AbilityLevel));
+			}
+		}
+	}
+}
+
+
+void AKayCharacter::RemoveSlottedGameplayAbilities(bool bRemoveAll)
+{
+	TMap<FKayItemSlot, FGameplayAbilitySpec> SlottedAbilitySpecs;
+
+	if (!bRemoveAll)
+	{
+		FillSlottedAbilitySpecs(SlottedAbilitySpecs);
+	}
+
+	for (TPair<FKayItemSlot, FGameplayAbilitySpecHandle>& ExistingPair : SlottedAbilities)
+	{
+		FGameplayAbilitySpec* FoundSpec = AbilitySystemComponent->FindAbilitySpecFromHandle(ExistingPair.Value);
+
+		bool bShouldRemove = bRemoveAll || !FoundSpec;
+
+		if (!bShouldRemove)
+		{
+			FGameplayAbilitySpec* DesiredSpec = SlottedAbilitySpecs.Find(ExistingPair.Key);
+			if (!DesiredSpec || DesiredSpec->Ability != FoundSpec->Ability || DesiredSpec->SourceObject != FoundSpec->SourceObject)
+			{
+				bShouldRemove = true;
+			}
+		}
+
+		if (bShouldRemove)
+		{
+			if (FoundSpec)
+			{
+				AbilitySystemComponent->ClearAbility(ExistingPair.Value);
+			}
+
+			ExistingPair.Value = FGameplayAbilitySpecHandle();
+		}
+	}
+	
+}
+
 void AKayCharacter::HandleDamage(float DamageAmount, const FHitResult& HitInfo, const FGameplayTagContainer& DamageTags,
-	AKayCharacter* InstigatorCharacter, AActor* DamageCauser)
+                                 AKayCharacter* InstigatorCharacter, AActor* DamageCauser)
 {
 	OnDamaged(DamageAmount, HitInfo, DamageTags, InstigatorCharacter, DamageCauser);
 }
