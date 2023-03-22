@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Dungeon/GAS/KayAbilityTypes.h"
 
 #include "AbilityProjectileBase.generated.h"
 
@@ -29,4 +30,15 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	FKayGameplayEffectContainerSpec EffectContainerSpec;
+	
+	UPROPERTY()
+	TArray<AActor*> HitActors;
+	
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
+	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+
+	virtual void HitDisplay();
 };
