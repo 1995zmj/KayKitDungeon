@@ -102,6 +102,22 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	float GetAttributeData(const FGameplayAttribute& Attribute);
+
+	UFUNCTION(BlueprintCallable)
+	bool IsAlive() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool DoMeleeAttack();
+
+	UFUNCTION(BlueprintCallable)
+	bool DoSkillAttack();
+
+	UFUNCTION(BlueprintCallable)
+	bool UseItemPotion();
+
+	// TODO 要删除的 这里只能再动画事件中调用
+	UFUNCTION(BlueprintCallable)
+	void DelayedDestroy();
 	
 protected:
 	UPROPERTY()
@@ -148,6 +164,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnMoveSpeedChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnPreDeath();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnPostDeath();
+
 	void OnItemSlotChanged(FKayItemSlot ItemSlot, UKayDataAsset* Item);
 
 	void RefreshSlottedGameplayAbilities();
@@ -164,6 +186,10 @@ protected:
 	virtual void HandleHealthChanged(const FOnAttributeChangeData& AttributeChangeData);
 	virtual void HandleManaChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 	virtual void HandleManaChanged(const FOnAttributeChangeData& AttributeChangeData);
+
+	// 死亡有两个阶段 播放死亡前，播放死亡动画之后
+	virtual void HandlePreDeath();
+	virtual void HandlePostDeath();
 
 	// virtual FGenericTeamId GetGenericTeamId() const override;
 

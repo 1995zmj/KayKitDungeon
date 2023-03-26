@@ -5,7 +5,7 @@
 
 #include "Dungeon/GAS/KayAbilitySystemComponent.h"
 #include "Dungeon/GAS/KayAttributeSet.h"
-
+#include "Dungeon/Tool/KayLog.h"
 
 // Sets default values
 AKayCharacter::AKayCharacter()
@@ -244,6 +244,32 @@ float AKayCharacter::GetAttributeData(const FGameplayAttribute& Attribute)
 	return Attribute.GetGameplayAttributeData(AttributeSet)->GetCurrentValue();
 }
 
+bool AKayCharacter::IsAlive() const
+{
+	return GetHealth() > 0.0f;
+}
+
+bool AKayCharacter::DoMeleeAttack()
+{
+	return false;
+}
+
+bool AKayCharacter::DoSkillAttack()
+{
+	return false;
+}
+
+bool AKayCharacter::UseItemPotion()
+{
+	return false;
+}
+
+void AKayCharacter::DelayedDestroy()
+{
+	UE_LOG(LogKay, Warning, TEXT("只有死亡动画之后能调用"));
+	HandlePostDeath();
+}
+
 void AKayCharacter::AddStartupGameplayAbilities()
 {
 
@@ -437,6 +463,22 @@ void AKayCharacter::HandleManaChanged(const FOnAttributeChangeData& AttributeCha
 	{
 		FGameplayTagContainer EventTags;
 		OnManaChanged(AttributeChangeData.OldValue - AttributeChangeData.NewValue, EventTags);
+	}
+}
+
+void AKayCharacter::HandlePreDeath()
+{
+	if (bAbilitiesInitialized)
+	{
+		OnPreDeath();
+	}
+}
+
+void AKayCharacter::HandlePostDeath()
+{
+	if (bAbilitiesInitialized)
+	{
+		OnPostDeath();
 	}
 }
 
