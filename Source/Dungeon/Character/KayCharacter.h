@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "GameplayAbilitySpec.h"
+#include "Dungeon/Asset/KayDataAsset_Weapon.h"
 #include "Dungeon/Common/KayInventoryInterface.h"
 
 
@@ -61,6 +62,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="CharacterBase")
 	UKayAbilitySystemComponent* AbilitySystemComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UKayDataAsset_Weapon* WeaponDataAsset;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "CharacterBase")
 	AKayWeapon* CurrentWeapon;
@@ -147,6 +151,7 @@ protected:
 	FDelegateHandle InventoryUpdateHandle;
 	FDelegateHandle InventoryLoadedHandle;
 	
+	void InitWeapon();
 	
 	void AddStartupGameplayAbilities();
 

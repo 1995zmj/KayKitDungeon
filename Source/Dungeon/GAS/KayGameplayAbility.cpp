@@ -1,6 +1,6 @@
+#include "KayGameplayAbility.h"
 #include "KayAbilitySystemComponent.h"
 #include "Dungeon/Character/KayCharacter.h"
-#include "KayGameplayAbility.h"
 
 FKayGameplayEffectContainerSpec UKayGameplayAbility::MakeEffectContainerSpecFromContainer(
 	const FKayGameplayEffectContainer& Container, const FGameplayEventData& EventData, int32 OverrideGameplayLevel)

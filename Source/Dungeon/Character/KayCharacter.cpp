@@ -24,16 +24,6 @@ AKayCharacter::AKayCharacter()
 void AKayCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
-	UE_LOG(LogTemp,Warning,TEXT("zmj InitAbilityActorInfo"));
-
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(this,this);
-		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UKayAttributeSet::GetHealthAttribute()).AddUObject(this, &AKayCharacter::HandleHealthChanged);
-		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UKayAttributeSet::GetManaAttribute()).AddUObject(this, &AKayCharacter::HandleManaChanged);
-		AddStartupGameplayAbilities();
-	}
 }
 
 void AKayCharacter::UnPossessed()
@@ -45,6 +35,15 @@ void AKayCharacter::UnPossessed()
 void AKayCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (AbilitySystemComponent)
+	{
+		UE_LOG(LogTemp,Warning,TEXT("zmj InitAbilityActorInfo"));
+		AbilitySystemComponent->InitAbilityActorInfo(this,this);
+		// AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UKayAttributeSet::GetHealthAttribute()).AddUObject(this, &AKayCharacter::HandleHealthChanged);
+		// AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UKayAttributeSet::GetManaAttribute()).AddUObject(this, &AKayCharacter::HandleManaChanged);
+		AddStartupGameplayAbilities();
+	}
 }
 
 // Called every frame
@@ -105,9 +104,8 @@ void AKayCharacter::GiveAbility(TSubclassOf<UGameplayAbility> Ability)
 	{
 		if (Ability)
 		{
-			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability, 1));
+			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability, GetCharacterLevel(), INDEX_NONE, this));
 		}
-		AbilitySystemComponent->InitAbilityActorInfo(this,this);
 	}
 }
 
@@ -268,6 +266,15 @@ void AKayCharacter::DelayedDestroy()
 {
 	UE_LOG(LogKay, Warning, TEXT("只有死亡动画之后能调用"));
 	HandlePostDeath();
+}
+
+void AKayCharacter::InitWeapon()
+{
+	if (WeaponDataAsset)
+	{
+		CurrentWeapon =  Cast<AKayWeapon>(GetWorld()->SpawnActor(WeaponDataAsset->WeaponActor));
+		CurrentWeapon->AttachToComponent(GetMesh(),FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true), FName("HandRightSocket"));
+	}
 }
 
 void AKayCharacter::AddStartupGameplayAbilities()

@@ -23,4 +23,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TSubclassOf<AKayWeapon> WeaponActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Abilities)
+	TSubclassOf<UKayGameplayAbility> GrantedSkillAbility;
 };

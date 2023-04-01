@@ -1,8 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Dungeon/Character/KayCharacter.h"
 #include "KayTargetType.h"
+#include "Dungeon/Character/KayCharacter.h"
 
 void UKayTargetType::GetTargets_Implementation(AKayCharacter* TargetingCharacter, AActor* TargetingActor,
 	FGameplayEventData EventData, TArray<FHitResult>& OutHitResults, TArray<AActor*>& OutActors) const
